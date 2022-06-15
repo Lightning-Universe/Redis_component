@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*install-app*
 
 # C extensions
 *.so
@@ -24,8 +25,8 @@ pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
 .installed.cfg
+
 *.egg
-MANIFEST
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -55,21 +56,10 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
 # Sphinx documentation
 docs/_build/
+docs/source/api/
+docs/source/*.md
 
 # PyBuilder
 target/
@@ -84,13 +74,6 @@ ipython_config.py
 # pyenv
 .python-version
 
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
 
@@ -103,6 +86,7 @@ celerybeat.pid
 
 # Environments
 .env
+.local_env
 .venv
 env/
 venv/
@@ -127,3 +111,47 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# PyCharm
+.idea/
+
+# Lightning logs
+lightning_logs
+*.gz
+.DS_Store
+.*_submit.py
+.vscode
+
+MNIST
+*.pt
+.storage/
+.shared/
+infra
+data
+coverage.*
+# Frontend build artifacts
+*lightning_app/ui*
+gradio_cached_examples
+/docs/source/api_reference/generated/*
+examples/my_own_leaderboard/submissions/*
+docs/source/api_reference/generated/*
+*.ckpt
+redis-stable
+node_modules
+*.rdb
+*.webm
+*hars
+examples/quick_start/*
+examples/quick_start
+examples/template_react_ui/*
+examples/template_react_ui
+# Ignore external components
+lightning_app/components/*
+!lightning_app/components/python
+!lightning_app/components/serve
+!lightning_app/components/__init__.py
+!lightning_app/components/README.md
+train_script.py
+*return_values*
+scratch
+storage
