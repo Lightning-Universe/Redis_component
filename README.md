@@ -31,7 +31,7 @@ class LitApp(LightningFlow):
             self.client = redis.Redis(
                 host=self.lightning_redis.internal_ip,
                 port=self.lightning_redis.port,
-                password=self.lightning_redis.password)
+                password=self.lightning_redis.redis_password)
 
 
 app = LightningApp(LitApp())

@@ -1,5 +1,4 @@
 import os
-import random
 import subprocess
 import time
 from pathlib import Path
@@ -7,17 +6,15 @@ from typing import List
 
 from lightning.app import LightningWork
 from lightning.app import BuildConfig
+import redis
 
-from lightning_redis.utils import RUNNING_ON_CLOUD
-
-if RUNNING_ON_CLOUD:
-    import redis
+from lightning_redis.utils import rand_password_gen, RUNNING_AT_CLOUD
 
 
 class CustomBuildConfig(BuildConfig):
-    def __init__(self, build_commands: List[str], *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._build_commands = build_commands
+    def __init__(self):
+        super().__init__()
+        self._build_commands = (Path(__file__).parent / "build_commands.sh").read_text().splitlines()
         self.requirements = ["redis"]
 
     def build_commands(self) -> List[str]:
@@ -26,25 +23,79 @@ class CustomBuildConfig(BuildConfig):
 
 class RedisComponent(LightningWork):
     def __init__(self):
-        build_commands = (Path(__file__).parent / "build_commands.sh").read_text().splitlines()
-        super().__init__(parallel=True, cloud_build_config=CustomBuildConfig(build_commands=build_commands))
-        self._has_initialized = False
-        rand_string = "".join([random.choice('abcdefghijklmnopqrstuvwxyz0123456789') for _ in range(20)])
-        self.password = os.getenv('REDIS_PASSWORD', rand_string)
+        super().__init__(parallel=True, cloud_build_config=CustomBuildConfig())
+        self._redis_process = None
+        self.redis_password = None
+        self.redis_host = None
+        self.redis_port = None
+        self.running = False
+
+    def _init_redis(self, docker=False):
+        if docker:
+            self._redis_process = subprocess.Popen(["docker", "run", "-it", "--rm", "-p", "6379:6379", "redis"])
+        else:
+            self._redis_process = subprocess.Popen(['redis-server', '--port', str(self.redis_port)])
+        ret = redis.Redis(port=self.redis_port).config_set('requirepass', self.redis_password)
+        if ret:
+            print("redis password set")
+
+    @staticmethod
+    def _has_redis_installed():
+        with open(os.devnull, "w") as devnull:
+            try:
+                proc = subprocess.Popen(["redis-server", "--version"], stdout=devnull, stderr=devnull)
+            except FileNotFoundError:
+                # redis server not installed
+                return False
+            else:
+                status = proc.wait(timeout=5)
+                proc.kill()
+                return True if status == 0 else False
+
+    @staticmethod
+    def _has_docker_installed():
+        with open(os.devnull, "w") as devnull:
+            try:
+                proc = subprocess.Popen(["docker", "stats", "--no-stream"], stdout=devnull, stderr=devnull)
+            except FileNotFoundError:
+                # docker server not installed or not running
+                return False
+            else:
+                status = proc.wait(timeout=5)
+                proc.kill()
+                return True if status == 0 else False
+
+    def on_exit(self):
+        # it won't kill the child process forcefully
+        self._redis_process.terminate()
 
     def run(self):
-        process = subprocess.Popen(['redis-server', '--port', str(self.port)])
-        if not self._has_initialized:
-            ret = redis.Redis(port=self.port).config_set('requirepass', 'mypassword')
-            if ret:
-                print("redis password set")
-                self._has_initialized = True
+        # setup credentials
+        self.redis_host = self.internal_ip if RUNNING_AT_CLOUD else "localhost"
+        self.redis_port = self.port
+        self.redis_password = os.getenv('REDIS_PASSWORD', rand_password_gen())
+
+        # Setting up Redis - we either need the redis system
+        # installation or a running docker service, so we can call redis docker image (only for local)
+        if not RUNNING_AT_CLOUD:
+            if self._has_redis_installed():
+                self._init_redis(docker=False)
+            elif self._has_docker_installed():
+                self._init_redis(docker=True)
+            else:
+                raise RuntimeError("Cannot run redis locally. You need to have either redis-server "
+                                   "or docker installed in your machine. If docker is installed already, make sure"
+                                   "the service is running. This is not a problem if you are running the "
+                                   "app in cloud, as we will install the redis-server for you there")
+        else:
+            self._init_redis(docker=False)
+
         while True:
             try:
-                redis.Redis(password=self.password, port=self.port).ping()
+                redis.Redis(password=self.redis_password, port=self.redis_port).ping()
+                self.running = True
             except redis.exceptions.ConnectionError:
-                print("redis is not up")
-            exit_code = process.poll()
-            if exit_code is not None:
-                raise Exception(f'Redis exited with code {exit_code}')
+                self.running = False
+                if time.perf_counter() > 60:
+                    print("Redis doesn't seem to be running. Exiting!!")
             time.sleep(1)

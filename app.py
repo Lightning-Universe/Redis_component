@@ -10,11 +10,12 @@ class LitApp(LightningFlow):
 
     def run(self):
         self.lightning_redis.run()
-        print("is redis up?, ", redis.Redis(
-            host=self.lightning_redis.internal_ip,
-            port=self.lightning_redis.port,
-            password=self.lightning_redis.password).ping()
-        )
+        if self.lightning_redis.running:
+            print("is redis up?, ", redis.Redis(
+                host=self.lightning_redis.redis_host,
+                port=self.lightning_redis.redis_port,
+                password=self.lightning_redis.redis_password).ping()
+            )
 
 
 app = LightningApp(LitApp())
