@@ -1,6 +1,7 @@
-from lightning_redis import RedisComponent
-from lightning.app import LightningApp, LightningFlow
 import redis
+from lightning.app import LightningApp, LightningFlow
+
+from lightning_redis import RedisComponent
 
 
 class LitApp(LightningFlow):
@@ -11,10 +12,13 @@ class LitApp(LightningFlow):
     def run(self):
         self.lightning_redis.run()
         if self.lightning_redis.running:
-            print("is redis up?, ", redis.Redis(
-                host=self.lightning_redis.redis_host,
-                port=self.lightning_redis.redis_port,
-                password=self.lightning_redis.redis_password).ping()
+            print(
+                "is redis up?, ",
+                redis.Redis(
+                    host=self.lightning_redis.redis_host,
+                    port=self.lightning_redis.redis_port,
+                    password=self.lightning_redis.redis_password,
+                ).ping(),
             )
 
 

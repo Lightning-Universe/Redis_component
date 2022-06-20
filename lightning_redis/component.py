@@ -4,17 +4,20 @@ import time
 from pathlib import Path
 from typing import List
 
-from lightning.app import LightningWork
-from lightning.app import BuildConfig
 import redis
+from lightning.app import BuildConfig, LightningWork
 
-from lightning_redis.utils import rand_password_gen, RUNNING_AT_CLOUD
+from lightning_redis.utils import RUNNING_AT_CLOUD, rand_password_gen
+
+REDIS_STARTUP_BUFFER_SECONDS = 60
 
 
 class CustomBuildConfig(BuildConfig):
     def __init__(self):
         super().__init__()
-        self._build_commands = (Path(__file__).parent / "build_commands.sh").read_text().splitlines()
+        self._build_commands = (
+            (Path(__file__).parent / "build_commands.sh").read_text().splitlines()
+        )
         self.requirements = ["redis"]
 
     def build_commands(self) -> List[str]:
@@ -32,10 +35,16 @@ class RedisComponent(LightningWork):
 
     def _init_redis(self, docker=False):
         if docker:
-            self._redis_process = subprocess.Popen(["docker", "run", "-it", "--rm", "-p", "6379:6379", "redis"])
+            self._redis_process = subprocess.Popen(
+                ["docker", "run", "-it", "--rm", "-p", "6379:6379", "redis"]
+            )
         else:
-            self._redis_process = subprocess.Popen(['redis-server', '--port', str(self.redis_port)])
-        ret = redis.Redis(port=self.redis_port).config_set('requirepass', self.redis_password)
+            self._redis_process = subprocess.Popen(
+                ["redis-server", "--port", str(self.redis_port)]
+            )
+        ret = redis.Redis(port=self.redis_port).config_set(
+            "requirepass", self.redis_password
+        )
         if ret:
             print("redis password set")
 
@@ -43,7 +52,9 @@ class RedisComponent(LightningWork):
     def _has_redis_installed():
         with open(os.devnull, "w") as devnull:
             try:
-                proc = subprocess.Popen(["redis-server", "--version"], stdout=devnull, stderr=devnull)
+                proc = subprocess.Popen(
+                    ["redis-server", "--version"], stdout=devnull, stderr=devnull
+                )
             except FileNotFoundError:
                 # redis server not installed
                 return False
@@ -56,7 +67,9 @@ class RedisComponent(LightningWork):
     def _has_docker_installed():
         with open(os.devnull, "w") as devnull:
             try:
-                proc = subprocess.Popen(["docker", "stats", "--no-stream"], stdout=devnull, stderr=devnull)
+                proc = subprocess.Popen(
+                    ["docker", "stats", "--no-stream"], stdout=devnull, stderr=devnull
+                )
             except FileNotFoundError:
                 # docker server not installed or not running
                 return False
@@ -73,7 +86,7 @@ class RedisComponent(LightningWork):
         # setup credentials
         self.redis_host = self.internal_ip if RUNNING_AT_CLOUD else "localhost"
         self.redis_port = self.port
-        self.redis_password = os.getenv('REDIS_PASSWORD', rand_password_gen())
+        self.redis_password = os.getenv("REDIS_PASSWORD", rand_password_gen())
 
         # Setting up Redis - we either need the redis system
         # installation or a running docker service, so we can call redis docker image (only for local)
@@ -83,10 +96,12 @@ class RedisComponent(LightningWork):
             elif self._has_docker_installed():
                 self._init_redis(docker=True)
             else:
-                raise RuntimeError("Cannot run redis locally. You need to have either redis-server "
-                                   "or docker installed in your machine. If docker is installed already, make sure"
-                                   "the service is running. This is not a problem if you are running the "
-                                   "app in cloud, as we will install the redis-server for you there")
+                raise RuntimeError(
+                    "Cannot run redis locally. You need to have either redis-server "
+                    "or docker installed in your machine. If docker is installed already, make sure"
+                    "the service is running. This is not a problem if you are running the "
+                    "app in cloud, as we will install the redis-server for you there"
+                )
         else:
             self._init_redis(docker=False)
 
@@ -96,6 +111,7 @@ class RedisComponent(LightningWork):
                 self.running = True
             except redis.exceptions.ConnectionError:
                 self.running = False
-                if time.perf_counter() > 60:
-                    print("Redis doesn't seem to be running. Exiting!!")
+                # below guard is to make sure we don't exit the redis before redis starts
+                if time.perf_counter() > REDIS_STARTUP_BUFFER_SECONDS:
+                    raise RuntimeError("Redis doesn't seem to be running. Exiting!!")
             time.sleep(1)

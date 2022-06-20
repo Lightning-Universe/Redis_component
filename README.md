@@ -63,3 +63,4 @@ In cloud, none of this matters, as we will install the redis server as part of t
 - [ ] Test and verify windows support. It's not currently tested on Windows but it might work out of the box
 - [ ] Redis module (if not all, at-least redis stack)
 - [ ] DB backup and restore (both RDB and AOF) is not supported
+- [ ] self-heal on error
