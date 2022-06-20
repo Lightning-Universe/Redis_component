@@ -1,4 +1,4 @@
-# lightning_redis component
+# lightning-redis
 
 ⚡ Redis Component for [Lightning](lightning.ai) ⚡
 
