@@ -1,12 +1,12 @@
 import os
 import subprocess
 import time
-from pathlib import Path
 from typing import List
 
 import redis
 from lightning.app import BuildConfig, LightningWork
 
+from lightning_redis.build_commands import build_commands
 from lightning_redis.utils import RUNNING_AT_CLOUD, rand_password_gen
 
 REDIS_STARTUP_BUFFER_SECONDS = 60
@@ -15,9 +15,7 @@ REDIS_STARTUP_BUFFER_SECONDS = 60
 class CustomBuildConfig(BuildConfig):
     def __init__(self):
         super().__init__()
-        self._build_commands = (
-            (Path(__file__).parent / "build_commands.sh").read_text().splitlines()
-        )
+        self._build_commands = build_commands
         self.requirements = ["redis"]
 
     def build_commands(self) -> List[str]:
