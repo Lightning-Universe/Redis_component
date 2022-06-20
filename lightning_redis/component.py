@@ -9,6 +9,8 @@ from lightning.app import BuildConfig, LightningWork
 
 from lightning_redis.utils import RUNNING_AT_CLOUD, rand_password_gen
 
+REDIS_STARTUP_BUFFER_SECONDS = 60
+
 
 class CustomBuildConfig(BuildConfig):
     def __init__(self):
@@ -109,6 +111,7 @@ class RedisComponent(LightningWork):
                 self.running = True
             except redis.exceptions.ConnectionError:
                 self.running = False
-                if time.perf_counter() > 60:
-                    print("Redis doesn't seem to be running. Exiting!!")
+                # below guard is to make sure we don't exit the redis before redis starts
+                if time.perf_counter() > REDIS_STARTUP_BUFFER_SECONDS:
+                    raise RuntimeError("Redis doesn't seem to be running. Exiting!!")
             time.sleep(1)

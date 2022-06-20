@@ -58,8 +58,3 @@ repos:
     rev: v1.3.0
     hooks:
       - id: yesqa
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 4.0.1
-    hooks:
-      - id: flake8
