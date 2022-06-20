@@ -54,7 +54,7 @@ jobs:
 
     - name: Tests
       run: |
-        coverage run --source lightning_redis -m py.test lightning_redis tests -v --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
+        pytest tests -v
 
     - name: Statistics
       if: success()
