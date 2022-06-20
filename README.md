@@ -15,7 +15,7 @@ Once the app is installed, use it in an app:
 
 ```python
 from lightning_redis import RedisComponent
-from lightning.app import LightningFlow, LightningApp
+from lightning.app import LightningApp, LightningFlow
 import redis
 
 
@@ -23,15 +23,15 @@ class LitApp(LightningFlow):
     def __init__(self) -> None:
         super().__init__()
         self.lightning_redis = RedisComponent()
-        self.client = None
 
     def run(self):
         self.lightning_redis.run()
-        if self.client is None:
-            self.client = redis.Redis(
-                host=self.lightning_redis.internal_ip,
-                port=self.lightning_redis.port,
-                password=self.lightning_redis.redis_password)
+        if self.lightning_redis.running:
+            print("is redis up?, ", redis.Redis(
+                host=self.lightning_redis.redis_host,
+                port=self.lightning_redis.redis_port,
+                password=self.lightning_redis.redis_password).ping()
+                  )
 
 
 app = LightningApp(LitApp())
@@ -47,3 +47,11 @@ For example:
 ```bash
 lightning run app app.py --cloud --env REDIS_PASSWORD=<your password>
 ```
+
+## Local Vs Cloud
+
+In local, to avoid messing up the system, we don't install anything onto user's machine. Hence, user's either need to
+install [redis-server](https://redis.io/docs/getting-started/installation/) or 
+[docker](https://docs.docker.com/engine/install/). Note that if redis-server is not installed and docker is installed,
+we'll pull the latest `redis` image from docker hub and run it with `docker run`.
+In cloud, none of this matters, as we will install the redis server as part of the initial setup
