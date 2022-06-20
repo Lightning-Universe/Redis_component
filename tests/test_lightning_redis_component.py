@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from lightning_redis.component import RedisComponent
 import lightning_redis.component as component
+from lightning_redis.component import RedisComponent
 
 
 def test_redis_component(monkeypatch):
@@ -19,7 +19,7 @@ def test_redis_component(monkeypatch):
     fake_port = 9090
 
     def popen(commands):
-        assert commands == ['redis-server', '--port', str(fake_port)]
+        assert commands == ["redis-server", "--port", str(fake_port)]
         return process_mock
 
     # mocking Popen since we use that to run redis server command
@@ -52,9 +52,7 @@ def test_redis_component(monkeypatch):
         redis.run()
 
     assert len(redis_mock.method_calls) == 4
-    assert redis_mock.method_calls[0].kwargs == {'port': fake_port}
+    assert redis_mock.method_calls[0].kwargs == {"port": fake_port}
     for mock_call in redis_mock.method_calls[1:]:
         assert len(mock_call.kwargs["password"]) == 20
         assert mock_call.kwargs["port"] == fake_port
-
-
