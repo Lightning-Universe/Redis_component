@@ -1,0 +1,2 @@
+# Include the license file
+include lightning_redis/build_commands.sh
