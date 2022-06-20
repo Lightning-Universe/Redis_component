@@ -55,8 +55,3 @@ jobs:
     - name: Tests
       run: |
         pytest tests -v
-
-    - name: Statistics
-      if: success()
-      run: |
-        coverage report
