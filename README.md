@@ -7,13 +7,15 @@ from other components. Although, it will not expose any abstractions for you to
 access the redis server, you can use any redis client using the credentials provided
 by this component.
 
-## To run lightning_redis
+## Install
 
 First, install lightning_redis:
 
 ```bash
-lightning install component https://github.com/theUser/lightning_redis
+lightning install component git+https://github.com/Lightning-AI/lightning-redis.git@main
 ```
+
+## Use the Component
 
 Once this component is installed, use it in a Lightning App:
 
@@ -45,6 +47,12 @@ class LitApp(LightningFlow):
 
 
 app = LightningApp(LitApp())
+```
+
+## Testing Locally
+
+```python
+pytest tests
 ```
 
 ## Redis Password
