@@ -58,7 +58,7 @@ pytest tests
 ## Redis Password
 
 By default, the RedisComponent will generate a 20 character password for you but if you wish to pass
-a custom password for your redis, run your app with `--env REDIS_PASSWORD=<your password>`
+a custom password for your redis, run your lightning app with `--env REDIS_PASSWORD=<your password>`
 
 For example:
 
