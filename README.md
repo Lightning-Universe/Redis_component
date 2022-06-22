@@ -2,6 +2,11 @@
 
 ⚡ Redis Component for [Lightning](lightning.ai) ⚡
 
+lightning-redis will set up redis server and provide the credentials to access it
+from other components. Although, it will not expose any abstractions for you to
+access the redis server, you can use any redis client using the credentials provided
+by this component.
+
 ## To run lightning_redis
 
 First, install lightning_redis:
@@ -10,7 +15,7 @@ First, install lightning_redis:
 lightning install component https://github.com/theUser/lightning_redis
 ```
 
-Once the app is installed, use it in an app:
+Once the component is installed, use it in an app:
 
 ```python
 from lightning_redis import RedisComponent
@@ -24,16 +29,19 @@ class LitApp(LightningFlow):
         self.lightning_redis = RedisComponent()
 
     def run(self):
+        # this will set up redis
         self.lightning_redis.run()
+
+        # check if redis is running or not
         if self.lightning_redis.running:
-            print(
-                "is redis up?, ",
-                redis.Redis(
-                    host=self.lightning_redis.redis_host,
-                    port=self.lightning_redis.redis_port,
-                    password=self.lightning_redis.redis_password,
-                ).ping(),
+
+            # creating a python client using the credentials
+            client = redis.Redis(
+                host=self.lightning_redis.redis_host,
+                port=self.lightning_redis.redis_port,
+                password=self.lightning_redis.redis_password,
             )
+            print("is redis up?, ", client.ping())
 
 
 app = LightningApp(LitApp())
