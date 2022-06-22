@@ -15,7 +15,7 @@ First, install lightning_redis:
 lightning install component https://github.com/theUser/lightning_redis
 ```
 
-Once the component is installed, use it in an app:
+Once this component is installed, use it in a Lightning App:
 
 ```python
 from lightning_redis import RedisComponent
