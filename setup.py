@@ -37,7 +37,7 @@ setup(
     url="https://github.com/PyTorchLightning/lightning-redis",
     packages=find_packages(exclude=["tests", "docs"]),
     keywords=["deeplearning", "redis", "AI"],
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     setup_requires=["wheel"],
     install_requires=_load_requirements(os.path.dirname(__file__)),
 )

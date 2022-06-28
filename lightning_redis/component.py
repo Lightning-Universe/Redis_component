@@ -4,15 +4,19 @@ import time
 
 import redis
 from lightning.app import LightningWork
+from lightning_app import BuildConfig
 
 from lightning_redis.utils import RUNNING_AT_CLOUD, rand_password_gen
 
 REDIS_STARTUP_BUFFER_SECONDS = 60
+DOCKER_IMAGE = "ghcr.io/gridai/lightning-redis:v0.1"
 
 
 class RedisComponent(LightningWork):
     def __init__(self):
-        super().__init__(parallel=True)
+        super().__init__(
+            parallel=True, cloud_build_config=BuildConfig(image=DOCKER_IMAGE)
+        )
         self._redis_process = None
         self.redis_password = None
         self.redis_host = None
@@ -29,7 +33,7 @@ class RedisComponent(LightningWork):
                     "--rm",
                     "-p",
                     "6379:6379",
-                    "ghcr.io/gridai/lightning-redis:v0.1",
+                    DOCKER_IMAGE,
                 ]
             )
         else:
@@ -42,11 +46,38 @@ class RedisComponent(LightningWork):
                     "/redismodules/redisearch.so",
                 ]
             )
+        process_start_time = time.perf_counter()
+        while time.perf_counter() - process_start_time < REDIS_STARTUP_BUFFER_SECONDS:
+            if self._redis_process.poll() is not None:
+                raise RuntimeError("Redis process exited before it started")
+            self.running = self._is_redis_running()
+            if self.running:
+                break
+            time.sleep(1)
+        else:
+            if docker:
+                raise RuntimeError(
+                    f"Redis didn't start within the {REDIS_STARTUP_BUFFER_SECONDS}. "
+                    f"Try downloading the docker image {DOCKER_IMAGE} manually"
+                )
+            else:
+                raise RuntimeError(
+                    f"Redis didn't start within {REDIS_STARTUP_BUFFER_SECONDS} seconds"
+                )
         ret = redis.Redis(port=self.redis_port).config_set(
             "requirepass", self.redis_password
         )
         if ret:
             print("redis password set")
+
+    def _is_redis_running(self, password=None):
+        try:
+            redis.Redis(password=password, port=self.redis_port).ping()
+            return True
+        except redis.exceptions.ConnectionError:
+            return False
+        except redis.exceptions.ResponseError as e:
+            return False
 
     @staticmethod
     def _has_docker_installed():
@@ -88,12 +119,7 @@ class RedisComponent(LightningWork):
         else:
             self._init_redis(docker=False)
         while True:
-            try:
-                redis.Redis(password=self.redis_password, port=self.redis_port).ping()
-                self.running = True
-            except redis.exceptions.ConnectionError:
-                self.running = False
-                # below guard is to make sure we don't exit the redis before redis starts
-                if time.perf_counter() > REDIS_STARTUP_BUFFER_SECONDS:
-                    raise RuntimeError("Redis doesn't seem to be running. Exiting!!")
+            self.running = self._is_redis_running(password=self.redis_password)
+            if not self.running:
+                raise RuntimeError("Redis is not running")
             time.sleep(1)

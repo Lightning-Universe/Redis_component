@@ -1,3 +1,5 @@
+import time
+
 import redis
 from lightning.app import LightningApp, LightningFlow
 
@@ -20,6 +22,7 @@ class LitApp(LightningFlow):
                     password=self.lightning_redis.redis_password,
                 ).ping(),
             )
+            time.sleep(1)
 
 
 app = LightningApp(LitApp())
