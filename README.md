@@ -3,12 +3,11 @@
 <div align="center">
 <img src="static/lightning-redis.png" width="250px">
 
-```
 ⚡ Redis Component for [Lightning](https://lightning.ai) ⚡
-______________________________________________________________________
-```
 
-![Tests](https://github.com/Lightning-AI/lightning-redis/blob/main/.github/workflows/ci-testing.yml/badge.svg)
+______________________________________________________________________
+
+![Tests](https://github.com/Lightning-AI/lightning-redis/actions/workflows/ci-testing.yml/badge.svg)
 
 </div>
 
