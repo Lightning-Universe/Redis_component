@@ -13,14 +13,15 @@ ______________________________________________________________________
 
 ## About
 
-lightning-redis will set up redis server along with chosen redis modules and provide the credentials to access it
+Redis component will set up redis server along with chosen redis modules and provide the credentials to access it
 from other components. Although, it will not expose any abstractions for you to
 access the redis server, you can use any redis client using the credentials provided
-by this component.
+by this component. The example given below is using the official [python redis client](https://github.com/Redis/redis-py)
+which can be installed using `pip install redis`.
 
 ## Install
 
-First, install lightning_redis:
+First, install the component:
 
 ```bash
 lightning install component git+https://github.com/Lightning-AI/lightning-redis.git@main
