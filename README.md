@@ -2,7 +2,7 @@
 
 ⚡ Redis Component for [Lightning](lightning.ai) ⚡
 
-lightning-redis will set up redis server and provide the credentials to access it
+lightning-redis will set up redis server along with chosen redis modules and provide the credentials to access it
 from other components. Although, it will not expose any abstractions for you to
 access the redis server, you can use any redis client using the credentials provided
 by this component.
