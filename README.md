@@ -1,6 +1,18 @@
-# lightning-redis
+<!---:lai-name: LightningRedis--->
 
-⚡ Redis Component for [Lightning](lightning.ai) ⚡
+<div align="center">
+<img src="static/lightning-redis.png" width="250px">
+
+```
+⚡ Redis Component for [Lightning](https://lightning.ai) ⚡
+______________________________________________________________________
+```
+
+![Tests](https://github.com/Lightning-AI/lightning-redis/blob/main/.github/workflows/ci-testing.yml/badge.svg)
+
+</div>
+
+## About
 
 lightning-redis will set up redis server and provide the credentials to access it
 from other components. Although, it will not expose any abstractions for you to
