@@ -20,7 +20,13 @@ def test_redis_component(monkeypatch):
     fake_port = 9090
 
     def popen(commands):
-        assert commands == ["redis-server", "--port", str(fake_port)]
+        assert commands == [
+            "redis-server",
+            "--port",
+            str(fake_port),
+            "--loadmodule",
+            "/redismodules/redisearch.so",
+        ]
         return process_mock
 
     # mocking Popen since we use that to run redis server command
@@ -52,5 +58,5 @@ def test_redis_component(monkeypatch):
     redis_component._port = fake_port
 
     # should exit with exception on 4th attempt as we set process_mock.poll_count = 3
-    with pytest.raises(RuntimeError, match="Redis doesn't seem to be running"):
+    with pytest.raises(RuntimeError, match="Redis didn't start within 0 seconds"):
         redis_component.run()
