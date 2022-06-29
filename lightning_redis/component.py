@@ -23,6 +23,35 @@ class RedisComponent(LightningWork):
         self.redis_port = None
         self.running = False
 
+    def run(self):
+        # setup credentials
+        self.redis_host = self.internal_ip if RUNNING_AT_CLOUD else "localhost"
+        self.redis_port = self.port
+        self.redis_password = os.getenv("REDIS_PASSWORD", rand_password_gen())
+
+        # Setting up Redis - we need a running docker service, so we can call redis docker image (only for local)
+        if not RUNNING_AT_CLOUD:
+            if self._has_docker_installed():
+                self._init_redis(docker=True)
+            else:
+                raise RuntimeError(
+                    "Cannot run redis locally. You need to have either docker installed in your "
+                    "machine for running this component locally. If docker is installed already, make sure"
+                    "the service is running. This is not a problem if you are running the "
+                    "app in cloud, as we will handle the installation of required tools"
+                )
+        else:
+            self._init_redis(docker=False)
+        while True:
+            self.running = self._is_redis_running(password=self.redis_password)
+            if not self.running:
+                raise RuntimeError("Redis is not running")
+            time.sleep(1)
+
+    def on_exit(self):
+        # it won't kill the child process forcefully
+        self._redis_process.terminate()
+
     def _init_redis(self, docker=False):
         if docker:
             self._redis_process = subprocess.Popen(
@@ -93,33 +122,3 @@ class RedisComponent(LightningWork):
                 status = proc.wait(timeout=5)
                 proc.kill()
                 return True if status == 0 else False
-
-    def on_exit(self):
-        # it won't kill the child process forcefully
-        self._redis_process.terminate()
-
-    def run(self):
-        # setup credentials
-        self.redis_host = self.internal_ip if RUNNING_AT_CLOUD else "localhost"
-        self.redis_port = self.port
-        self.redis_password = os.getenv("REDIS_PASSWORD", rand_password_gen())
-
-        # Setting up Redis - we either need the redis system
-        # installation or a running docker service, so we can call redis docker image (only for local)
-        if not RUNNING_AT_CLOUD:
-            if self._has_docker_installed():
-                self._init_redis(docker=True)
-            else:
-                raise RuntimeError(
-                    "Cannot run redis locally. You need to have either docker installed in your "
-                    "machine for running this component locally. If docker is installed already, make sure"
-                    "the service is running. This is not a problem if you are running the "
-                    "app in cloud, as we will handle the installation of required tools"
-                )
-        else:
-            self._init_redis(docker=False)
-        while True:
-            self.running = self._is_redis_running(password=self.redis_password)
-            if not self.running:
-                raise RuntimeError("Redis is not running")
-            time.sleep(1)
