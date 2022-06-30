@@ -25,9 +25,10 @@ class RedisComponent(LightningWork):
 
     def run(self):
         # setup credentials
-        self.redis_host = self.internal_ip if RUNNING_AT_CLOUD else "localhost"
+        self.redis_host = self.internal_ip
         self.redis_port = self.port
-        self.redis_password = os.getenv("REDIS_PASSWORD", rand_password_gen())
+        if not self.redis_password:
+            self.redis_password = os.getenv("REDIS_PASSWORD", rand_password_gen())
 
         # Setting up Redis - we need a running docker service, so we can call redis docker image (only for local)
         if not RUNNING_AT_CLOUD:
