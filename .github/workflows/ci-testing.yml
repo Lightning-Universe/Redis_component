@@ -31,10 +31,10 @@ jobs:
     - name: Install dependencies
       run: |
         pip --version
-        pip install --requirement requirements.txt --upgrade --quiet
+        pip install -e . -r requirements.txt -U -q --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
         pip install --requirement requirements-dev.txt --quiet
         pip list
       shell: bash
 
     - name: Tests
-      run: pytest tests -v
+      run: python -m pytest tests/ -v
