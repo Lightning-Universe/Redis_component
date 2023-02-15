@@ -14,9 +14,7 @@ DOCKER_IMAGE = "ghcr.io/gridai/lightning-redis:v0.1"
 
 class RedisComponent(LightningWork):
     def __init__(self):
-        super().__init__(
-            parallel=True, cloud_build_config=BuildConfig(image=DOCKER_IMAGE)
-        )
+        super().__init__(parallel=True, cloud_build_config=BuildConfig(image=DOCKER_IMAGE))
         self._redis_process = None
         self.redis_password = None
         self.redis_host = None
@@ -91,12 +89,8 @@ class RedisComponent(LightningWork):
                     f"Try downloading the docker image {DOCKER_IMAGE} manually"
                 )
             else:
-                raise RuntimeError(
-                    f"Redis didn't start within {REDIS_STARTUP_BUFFER_SECONDS} seconds"
-                )
-        ret = redis.Redis(port=self.redis_port).config_set(
-            "requirepass", self.redis_password
-        )
+                raise RuntimeError(f"Redis didn't start within {REDIS_STARTUP_BUFFER_SECONDS} seconds")
+        ret = redis.Redis(port=self.redis_port).config_set("requirepass", self.redis_password)
         if ret:
             print("redis password set")
 
@@ -106,16 +100,14 @@ class RedisComponent(LightningWork):
             return True
         except redis.exceptions.ConnectionError:
             return False
-        except redis.exceptions.ResponseError as e:
+        except redis.exceptions.ResponseError:
             return False
 
     @staticmethod
     def _has_docker_installed():
         with open(os.devnull, "w") as devnull:
             try:
-                proc = subprocess.Popen(
-                    ["docker", "stats", "--no-stream"], stdout=devnull, stderr=devnull
-                )
+                proc = subprocess.Popen(["docker", "stats", "--no-stream"], stdout=devnull, stderr=devnull)
             except FileNotFoundError:
                 # docker server not installed or not running
                 return False

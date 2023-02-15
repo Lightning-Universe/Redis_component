@@ -10,6 +10,4 @@ RUNNING_AT_CLOUD = (
 
 
 def rand_password_gen(length=20):
-    return "".join(
-        [random.choice("abcdefghijklmnopqrstuvwxyz0123456789") for _ in range(length)]
-    )
+    return "".join([random.choice("abcdefghijklmnopqrstuvwxyz0123456789") for _ in range(length)])
