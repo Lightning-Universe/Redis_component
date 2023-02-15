@@ -48,7 +48,6 @@ class LitApp(LightningFlow):
 
         # check if redis is running or not
         if self.lightning_redis.running:
-
             # creating a python client using the credentials
             client = redis.Redis(
                 host=self.lightning_redis.redis_host,
