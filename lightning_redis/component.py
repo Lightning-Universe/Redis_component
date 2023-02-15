@@ -4,7 +4,7 @@ import time
 
 import redis
 from lightning.app import LightningWork
-from lightning_app import BuildConfig
+from lightning import BuildConfig
 
 from lightning_redis.utils import RUNNING_AT_CLOUD, rand_password_gen
 
